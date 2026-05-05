@@ -1,0 +1,116 @@
+<script>
+// ===== CONFIGURAÇÕES QUE VOCÊ MUDA =====
+const WHATSAPP = "5577981047147"; // Seu número
+let ESTOQUE = 47; // MUDA AQUI A QUANTIDADE DE PASSES
+// =======================================
+
+const estoqueEl = document.getElementById('estoqueInfo');
+const btnFinalizar = document.getElementById('btnFinalizar');
+const nomeInput = document.getElementById('nome');
+const cpfInput = document.getElementById('cpf');
+const emailInput = document.getElementById('email');
+const idffInput = document.getElementById('idff');
+const cpfStatus = document.getElementById('cpfStatus');
+
+function atualizarEstoque() {
+if (ESTOQUE > 0) {
+estoqueEl.innerText = `🔥 ${ESTOQUE} Passes em estoque`;
+estoqueEl.classList.remove('esgotado');
+checarFormulario(); // Checa se libera o botão
+} else {
+estoqueEl.innerText = `❌ Esgotado`;
+estoqueEl.classList.add('esgotado');
+btnFinalizar.disabled = true;
+}
+}
+atualizarEstoque();
+
+// Função que libera/trava o botão baseado em tudo
+function checarFormulario() {
+let cpfValido = validarCPFCalculo(cpfInput.value);
+let nomeOk = nomeInput.value.trim().length > 2;
+let emailOk = emailInput.value.includes('@');
+let idOk = idffInput.value.trim().length > 3;
+let temEstoque = ESTOQUE > 0;
+
+btnFinalizar.disabled = !(cpfValido && nomeOk && emailOk && idOk && temEstoque);
+}
+
+// VALIDADOR DE CPF RIGOROSO - SÓ CÁLCULO
+function validarCPFCalculo(cpf) {
+cpf = cpf.replace(/\D/g, '');
+if (cpf.length !== 11) return false;
+if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+let soma = 0;
+for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
+let resto = 11 - (soma % 11);
+let digito1 = resto === 10 || resto === 11 ? 0 : resto;
+if (digito1 !== parseInt(cpf.charAt(9))) return false;
+
+soma = 0;
+for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i);
+resto = 11 - (soma % 11);
+let digito2 = resto === 10 || resto === 11 ? 0 : resto;
+if (digito2 !== parseInt(cpf.charAt(10))) return false;
+
+return true;
+}
+
+// Valida CPF e atualiza visual + botão
+function validarCPF(input) {
+let cpf = input.value.replace(/\D/g, '');
+input.value = cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+
+if (cpf.length === 0) {
+cpfStatus.innerText = '';
+checarFormulario();
+return;
+}
+
+if (cpf.length !== 11) {
+cpfStatus.innerText = 'CPF incompleto';
+cpfStatus.className = 'cpf-status cpf-invalido';
+checarFormulario();
+return;
+}
+
+if (validarCPFCalculo(cpf)) {
+cpfStatus.innerText = 'CPF Válido ✓';
+cpfStatus.className = 'cpf-status cpf-valido';
+} else {
+cpfStatus.innerText = 'CPF Inválido';
+cpfStatus.className = 'cpf-status cpf-invalido';
+}
+checarFormulario();
+}
+
+// Adiciona eventos pra checar o formulário toda hora
+[nomeInput, cpfInput, emailInput, idffInput].forEach(input => {
+input.addEventListener('input', checarFormulario);
+});
+
+function copiarPix(){
+navigator.clipboard.writeText(document.getElementById('codigoPix').innerText).then(() => alert('Código Pix copiado!'));
+}
+
+function finalizarCompra(){
+let nome = nomeInput.value.trim();
+let cpf = cpfInput.value;
+let email = emailInput.value.trim();
+let idff = idffInput.value.trim();
+
+if(!validarCPFCalculo(cpf)){
+alert('CPF Inválido! Digite um CPF válido para continuar.');
+return;
+}
+
+if(ESTOQUE <= 0){
+alert('Passe esgotado!');
+return;
+}
+
+let msg = `*COMPRA PASSE FF R$ 7,00*%0A%0A*Nome:* ${nome}%0A*CPF:* ${cpf}%0A*Email:* ${email}%0A*ID FF:* ${idff}%0A%0AJá fiz o Pix. Me envia o passe!`;
+window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, '_blank');
+}
+  </script>
